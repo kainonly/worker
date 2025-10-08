@@ -5,8 +5,8 @@ package bootstrap
 
 import (
 	"github.com/google/wire"
-	"github.com/weplanx/worker/app"
-	"github.com/weplanx/worker/common"
+	"github.com/kainonly/worker/app"
+	"github.com/kainonly/worker/common"
 )
 
 func NewApp() (*app.App, error) {
@@ -16,7 +16,6 @@ func NewApp() (*app.App, error) {
 		UseZap,
 		UseNats,
 		UseJetStream,
-		UseTransfer,
 		app.Initialize,
 	)
 	return &app.App{}, nil

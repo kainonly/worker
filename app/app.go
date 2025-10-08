@@ -2,15 +2,15 @@ package app
 
 import (
 	"context"
+	"time"
+
 	"github.com/bytedance/sonic"
 	"github.com/imroc/req/v3"
+	"github.com/kainonly/worker/common"
 	"github.com/mitchellh/mapstructure"
 	"github.com/nats-io/nats.go"
 	"github.com/vmihailenco/msgpack/v5"
-	transfer "github.com/weplanx/collector/client"
-	"github.com/weplanx/worker/common"
 	"go.uber.org/zap"
-	"time"
 )
 
 type App struct {
@@ -31,11 +31,11 @@ func Initialize(i *common.Inject) *App {
 }
 
 func (x *App) Run(ctx context.Context) (err error) {
-	if err = x.Transfer.Set(ctx, transfer.StreamOption{
-		Key: "logset_jobs",
-	}); err != nil {
-		return
-	}
+	//if err = x.Transfer.Add(ctx, transfer.StreamOption{
+	//	Key: "logset_jobs",
+	//}); err != nil {
+	//	return
+	//}
 
 	if _, err = x.Nats.QueueSubscribe("jobs.*", "WORKER", func(msg *nats.Msg) {
 		var job common.Job
@@ -83,35 +83,35 @@ func (x *App) HTTPMode(job common.Job) (err error) {
 		return
 	}
 
-	now := time.Now()
-	if e := x.Transfer.Publish(ctx, "logset_jobs", transfer.Payload{
-		Timestamp: now,
-		Data: M{
-			"metadata": M{
-				"key":    job.Key,
-				"index":  job.Index,
-				"mode":   job.Mode,
-				"method": option.Method,
-				"url":    option.Url,
-			},
-			"headers": option.Headers,
-			"body":    option.Body,
-			"response": M{
-				"status": resp.StatusCode,
-				"body":   string(resp.Bytes()),
-			},
-		},
-		XData: M{},
-	}); e != nil {
-		x.Log.Error("transfer publish fail",
-			zap.String("key", job.Key),
-			zap.Int("index", job.Index),
-			zap.Any("headers", option.Headers),
-			zap.Any("body", option.Body),
-			zap.Error(e),
-		)
-		return
-	}
+	//now := time.Now()
+	//if e := x.Transfer.Publish(ctx, "logset_jobs", transfer.Payload{
+	//	Timestamp: now,
+	//	Data: M{
+	//		"metadata": M{
+	//			"key":    job.Key,
+	//			"index":  job.Index,
+	//			"mode":   job.Mode,
+	//			"method": option.Method,
+	//			"url":    option.Url,
+	//		},
+	//		"headers": option.Headers,
+	//		"body":    option.Body,
+	//		"response": M{
+	//			"status": resp.StatusCode,
+	//			"body":   string(resp.Bytes()),
+	//		},
+	//	},
+	//	XData: M{},
+	//}); e != nil {
+	//	x.Log.Error("transfer publish fail",
+	//		zap.String("key", job.Key),
+	//		zap.Int("index", job.Index),
+	//		zap.Any("headers", option.Headers),
+	//		zap.Any("body", option.Body),
+	//		zap.Error(e),
+	//	)
+	//	return
+	//}
 	x.Log.Debug("http request ok",
 		zap.String("key", job.Key),
 		zap.Int("index", job.Index),
