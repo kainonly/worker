@@ -2,23 +2,26 @@ package common
 
 import (
 	"github.com/nats-io/nats.go"
-	transfer "github.com/weplanx/collector/client"
+	"github.com/nats-io/nats.go/jetstream"
 	"go.uber.org/zap"
 )
 
 type Inject struct {
-	V         *Values
-	Log       *zap.Logger
-	Nats      *nats.Conn
-	JetStream nats.JetStreamContext
-	Transfer  *transfer.Client
+	V    *Values
+	Log  *zap.Logger
+	Nats *nats.Conn
+	Js   jetstream.JetStream
 }
 
 type Values struct {
-	Nats struct {
-		Hosts []string `env:"HOSTS,required" envSeparator:","`
-		Nkey  string   `env:"NKEY,required"`
-	} `envPrefix:"NATS_"`
+	Mode      string `yaml:"mode"`
+	Namespace string `yaml:"namespace"`
+	Nats      Nats   `yaml:"nats"`
+}
+
+type Nats struct {
+	Hosts []string `yaml:"hosts"`
+	Token string   `yaml:"token"`
 }
 
 type Job struct {

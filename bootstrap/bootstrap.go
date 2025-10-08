@@ -1,15 +1,14 @@
 package bootstrap
 
 import (
-	"fmt"
-	"github.com/caarlos0/env/v10"
-	"github.com/nats-io/nats.go"
-	"github.com/nats-io/nkeys"
-	transfer "github.com/weplanx/collector/client"
-	"github.com/weplanx/worker/common"
-	"go.uber.org/zap"
 	"os"
 	"strings"
+
+	"github.com/caarlos0/env/v10"
+	"github.com/kainonly/worker/common"
+	"github.com/nats-io/nats.go"
+	"github.com/nats-io/nats.go/jetstream"
+	"go.uber.org/zap"
 )
 
 func LoadStaticValues() (values *common.Values, err error) {
@@ -34,36 +33,17 @@ func UseZap() (log *zap.Logger, err error) {
 }
 
 func UseNats(values *common.Values) (nc *nats.Conn, err error) {
-	var kp nkeys.KeyPair
-	if kp, err = nkeys.FromSeed([]byte(values.Nats.Nkey)); err != nil {
-		return
-	}
-	defer kp.Wipe()
-	var pub string
-	if pub, err = kp.PublicKey(); err != nil {
-		return
-	}
-	if !nkeys.IsValidPublicUserKey(pub) {
-		return nil, fmt.Errorf("nkey verification failed")
-	}
 	if nc, err = nats.Connect(
 		strings.Join(values.Nats.Hosts, ","),
+		nats.Token(values.Nats.Token),
 		nats.RetryOnFailedConnect(true),
 		nats.MaxReconnects(-1),
-		nats.Nkey(pub, func(nonce []byte) ([]byte, error) {
-			sig, _ := kp.Sign(nonce)
-			return sig, nil
-		}),
 	); err != nil {
 		return
 	}
 	return
 }
 
-func UseJetStream(nc *nats.Conn) (nats.JetStreamContext, error) {
-	return nc.JetStream(nats.PublishAsyncMaxPending(256))
-}
-
-func UseTransfer(js nats.JetStreamContext) (*transfer.Client, error) {
-	return transfer.New(js)
+func UseJetStream(nc *nats.Conn) (jetstream.JetStream, error) {
+	return jetstream.New(nc)
 }

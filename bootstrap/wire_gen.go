@@ -7,8 +7,8 @@
 package bootstrap
 
 import (
-	"github.com/weplanx/worker/app"
-	"github.com/weplanx/worker/common"
+	"github.com/kainonly/worker/app"
+	"github.com/kainonly/worker/common"
 )
 
 // Injectors from wire.go:
@@ -26,20 +26,15 @@ func NewApp() (*app.App, error) {
 	if err != nil {
 		return nil, err
 	}
-	jetStreamContext, err := UseJetStream(conn)
-	if err != nil {
-		return nil, err
-	}
-	client, err := UseTransfer(jetStreamContext)
+	jetStream, err := UseJetStream(conn)
 	if err != nil {
 		return nil, err
 	}
 	inject := &common.Inject{
-		V:         values,
-		Log:       logger,
-		Nats:      conn,
-		JetStream: jetStreamContext,
-		Transfer:  client,
+		V:    values,
+		Log:  logger,
+		Nats: conn,
+		Js:   jetStream,
 	}
 	appApp := app.Initialize(inject)
 	return appApp, nil

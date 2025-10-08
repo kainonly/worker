@@ -2,10 +2,11 @@ package main
 
 import (
 	"context"
-	"github.com/weplanx/worker/bootstrap"
 	"os"
 	"os/signal"
 	"time"
+
+	"github.com/kainonly/worker/bootstrap"
 )
 
 func main() {
